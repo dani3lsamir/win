@@ -175,66 +175,357 @@ function Start-WinSetup {
         return
     }
 
+    Write-Host ''
+    Write-Host '  ==========================' -ForegroundColor DarkMagenta
+    Write-Host '       W I N   S E T U P' -ForegroundColor Magenta
+    Write-Host '        by: dani3lsamir' -ForegroundColor DarkGray
+    Write-Host '  ==========================' -ForegroundColor DarkMagenta
+    Write-Host ''
+
     # ======================================================================
-    #  Window with checkboxes
+    #  Window
     # ======================================================================
     Add-Type -AssemblyName PresentationFramework
 
     $xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Win Setup" Width="920" Height="680" WindowStartupLocation="CenterScreen"
-        Background="#1E1E1E" Foreground="#EEEEEE" FontFamily="Segoe UI" FontSize="13">
+        Title="Win Setup" Width="1000" Height="740" MinWidth="780" MinHeight="520"
+        WindowStartupLocation="CenterScreen" WindowStyle="None" ResizeMode="CanResize"
+        Background="#141519" Foreground="#E6E6EA" FontFamily="Segoe UI" FontSize="13"
+        UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
+  <WindowChrome.WindowChrome>
+    <WindowChrome CaptionHeight="72" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0"/>
+  </WindowChrome.WindowChrome>
+
   <Window.Resources>
+    <SolidColorBrush x:Key="Accent" Color="#7C5CFF"/>
+    <SolidColorBrush x:Key="Card"   Color="#1E1F26"/>
+    <SolidColorBrush x:Key="Line"   Color="#2C2D37"/>
+    <SolidColorBrush x:Key="Muted"  Color="#8B8D98"/>
+
+    <!-- Checkbox: rounded box, violet when checked, dash when partially checked -->
     <Style TargetType="CheckBox">
-      <Setter Property="Foreground" Value="#EEEEEE"/>
-      <Setter Property="Margin" Value="0,4,0,4"/>
+      <Setter Property="Foreground" Value="#E6E6EA"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Margin" Value="0,5,0,5"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="CheckBox">
+            <Grid Background="Transparent">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
+              <Border x:Name="Box" Width="18" Height="18" CornerRadius="5" BorderThickness="1.5"
+                      BorderBrush="#555764" Background="Transparent" VerticalAlignment="Top" Margin="0,1,0,0">
+                <Grid>
+                  <Path x:Name="Mark" Data="M 3 7.5 L 6.3 10.8 L 12 4.6" Stroke="White" StrokeThickness="2"
+                        StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Visibility="Collapsed"/>
+                  <Rectangle x:Name="Dash" Width="8" Height="2" RadiusX="1" RadiusY="1" Fill="{StaticResource Accent}" Visibility="Collapsed"/>
+                </Grid>
+              </Border>
+              <ContentPresenter Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center"/>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource Accent}"/>
+              </Trigger>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Box" Property="Background" Value="{StaticResource Accent}"/>
+                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                <Setter TargetName="Mark" Property="Visibility" Value="Visible"/>
+              </Trigger>
+              <Trigger Property="IsChecked" Value="{x:Null}">
+                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                <Setter TargetName="Dash" Property="Visibility" Value="Visible"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
     </Style>
-    <Style TargetType="Button">
-      <Setter Property="Padding" Value="18,6"/>
-      <Setter Property="Margin" Value="8,0,0,0"/>
+
+    <!-- Buttons -->
+    <Style x:Key="BtnBase" TargetType="Button">
+      <Setter Property="Foreground" Value="#E6E6EA"/>
+      <Setter Property="Background" Value="#262731"/>
+      <Setter Property="Padding" Value="18,9"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Opacity" Value="0.85"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Bd" Property="Opacity" Value="0.35"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="Button" BasedOn="{StaticResource BtnBase}"/>
+    <Style x:Key="Primary" TargetType="Button" BasedOn="{StaticResource BtnBase}">
+      <Setter Property="Background" Value="{StaticResource Accent}"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Padding" Value="22,9"/>
+    </Style>
+    <Style x:Key="Small" TargetType="Button" BasedOn="{StaticResource BtnBase}">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{StaticResource Muted}"/>
+      <Setter Property="Padding" Value="10,6"/>
+      <Setter Property="Margin" Value="4,0,0,0"/>
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="Background" Value="#262731"/>
+          <Setter Property="Foreground" Value="#E6E6EA"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <Style x:Key="Chrome" TargetType="Button" BasedOn="{StaticResource BtnBase}">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{StaticResource Muted}"/>
+      <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+      <Setter Property="FontSize" Value="10"/>
+      <Setter Property="Width" Value="40"/>
+      <Setter Property="Height" Value="32"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="Background" Value="#262731"/>
+          <Setter Property="Foreground" Value="White"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <Style x:Key="ChromeClose" TargetType="Button" BasedOn="{StaticResource Chrome}">
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="Background" Value="#E5484D"/>
+          <Setter Property="Foreground" Value="White"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
+    <!-- Tabs as pills -->
+    <Style TargetType="TabControl">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="0,14,0,0"/>
+    </Style>
+    <Style TargetType="TabItem">
+      <Setter Property="Foreground" Value="{StaticResource Muted}"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="TabItem">
+            <Border x:Name="Bd" Padding="18,8" Margin="0,0,6,0" CornerRadius="8" Background="Transparent">
+              <ContentPresenter ContentSource="Header" TextElement.FontSize="14"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="#262731"/>
+                <Setter Property="Foreground" Value="White"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Slim dark scrollbar -->
+    <Style TargetType="ScrollBar">
+      <Setter Property="Width" Value="8"/>
+      <Setter Property="MinWidth" Value="8"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ScrollBar">
+            <Track x:Name="PART_Track" IsDirectionReversed="True">
+              <Track.Thumb>
+                <Thumb>
+                  <Thumb.Template>
+                    <ControlTemplate TargetType="Thumb">
+                      <Border Background="#34353F" CornerRadius="4"/>
+                    </ControlTemplate>
+                  </Thumb.Template>
+                </Thumb>
+              </Track.Thumb>
+            </Track>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
     </Style>
   </Window.Resources>
-  <DockPanel Margin="12">
-    <DockPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
-      <TextBlock x:Name="Credit" DockPanel.Dock="Left" VerticalAlignment="Center"
-                 Foreground="#8A8A8A" Cursor="Hand" ToolTip="github.com/dani3lsamir">by: dani3lsamir</TextBlock>
-      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-        <Button x:Name="BtnInstall" Content="Install selected" IsDefault="True"/>
-        <Button Content="Cancel" IsCancel="True"/>
-      </StackPanel>
-    </DockPanel>
-    <TabControl Background="#252526" BorderBrush="#3C3C3C">
-      <TabItem Header="  Apps  ">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Background="#252526">
-          <StackPanel x:Name="AppsPanel" Margin="12"/>
-        </ScrollViewer>
-      </TabItem>
-      <TabItem Header="  Settings  ">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Background="#252526">
-          <StackPanel x:Name="TweaksPanel" Margin="12"/>
-        </ScrollViewer>
-      </TabItem>
-    </TabControl>
-  </DockPanel>
+
+  <Border BorderBrush="{StaticResource Line}" BorderThickness="1">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="72"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+
+      <!-- Header (also the draggable title bar) -->
+      <Grid Grid.Row="0" Margin="24,0,8,0">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <Border Width="40" Height="40" CornerRadius="10">
+            <Border.Background>
+              <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#9B7BFF" Offset="0"/>
+                <GradientStop Color="#5B3FE0" Offset="1"/>
+              </LinearGradientBrush>
+            </Border.Background>
+            <TextBlock Text="W" Foreground="White" FontSize="20" FontWeight="Bold"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Border>
+          <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+            <TextBlock Text="Win Setup" FontSize="20" FontWeight="SemiBold" Foreground="White"/>
+            <TextBlock x:Name="PcInfo" Foreground="{StaticResource Muted}" FontSize="12" Margin="0,1,0,0"/>
+          </StackPanel>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,0,0">
+          <Button x:Name="BtnMin" Style="{StaticResource Chrome}" Content="&#xE921;"/>
+          <Button x:Name="BtnClose" Style="{StaticResource ChromeClose}" Content="&#xE8BB;"/>
+        </StackPanel>
+      </Grid>
+
+      <!-- Tabs -->
+      <TabControl Grid.Row="1" Margin="24,0,24,0">
+        <TabItem Header="Apps">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid Margin="0,0,0,12">
+              <Border Background="{StaticResource Card}" CornerRadius="8" BorderBrush="{StaticResource Line}"
+                      BorderThickness="1" Width="300" HorizontalAlignment="Left">
+                <Grid>
+                  <TextBlock x:Name="SearchHint" Text="Search apps..." Foreground="#5F616C" Margin="12,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                  <TextBox x:Name="Search" Background="Transparent" BorderThickness="0" Foreground="#E6E6EA"
+                           CaretBrush="White" Padding="9,8" VerticalContentAlignment="Center"/>
+                </Grid>
+              </Border>
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button x:Name="AppsAll"  Style="{StaticResource Small}" Content="Select all"/>
+                <Button x:Name="AppsNone" Style="{StaticResource Small}" Content="None"/>
+              </StackPanel>
+            </Grid>
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+              <StackPanel x:Name="AppsPanel" Margin="0,0,10,12"/>
+            </ScrollViewer>
+          </Grid>
+        </TabItem>
+        <TabItem Header="Settings">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid Margin="0,0,0,12">
+              <TextBlock Text="Light tweaks only. Nothing gets uninstalled." Foreground="{StaticResource Muted}" VerticalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="TweaksAll"  Style="{StaticResource Small}" Content="Select all"/>
+                <Button x:Name="TweaksNone" Style="{StaticResource Small}" Content="None"/>
+              </StackPanel>
+            </Grid>
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+              <UniformGrid x:Name="TweaksPanel" Columns="2" Margin="0,0,10,12" VerticalAlignment="Top"/>
+            </ScrollViewer>
+          </Grid>
+        </TabItem>
+      </TabControl>
+
+      <!-- Footer -->
+      <Border Grid.Row="2" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Padding="24,14">
+        <Grid>
+          <TextBlock x:Name="Credit" VerticalAlignment="Center" Cursor="Hand" ToolTip="github.com/dani3lsamir" Text="by: dani3lsamir">
+            <TextBlock.Style>
+              <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="#6E707B"/>
+                <Style.Triggers>
+                  <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="#9B7BFF"/>
+                    <Setter Property="TextDecorations" Value="Underline"/>
+                  </Trigger>
+                </Style.Triggers>
+              </Style>
+            </TextBlock.Style>
+          </TextBlock>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <TextBlock x:Name="Count" Foreground="{StaticResource Muted}" VerticalAlignment="Center" Margin="0,0,16,0"/>
+            <Button Content="Cancel" IsCancel="True" Margin="0,0,8,0"/>
+            <Button x:Name="BtnInstall" Style="{StaticResource Primary}" Content="Install selected"/>
+          </StackPanel>
+        </Grid>
+      </Border>
+    </Grid>
+  </Border>
 </Window>
 '@
     $win = [System.Windows.Markup.XamlReader]::Parse($xaml)
-    $appsPanel   = $win.FindName('AppsPanel')
-    $tweaksPanel = $win.FindName('TweaksPanel')
 
-    # Apps grouped by category; the category checkbox checks/unchecks all of them
-    $appBoxes = @()
+    # Everything the event handlers need lives in $ui
+    $ui = @{
+        AppBoxes   = New-Object System.Collections.Generic.List[object]
+        TweakBoxes = New-Object System.Collections.Generic.List[object]
+        Cards      = New-Object System.Collections.Generic.List[object]
+    }
+    foreach ($n in 'PcInfo', 'Search', 'SearchHint', 'AppsPanel', 'TweaksPanel', 'AppsAll', 'AppsNone',
+                   'TweaksAll', 'TweaksNone', 'Credit', 'Count', 'BtnInstall', 'BtnMin', 'BtnClose') {
+        $ui[$n] = $win.FindName($n)
+    }
+
+    $os = (Get-CimInstance Win32_OperatingSystem -ErrorAction SilentlyContinue).Caption -replace '^Microsoft\s+', ''
+    $ui.PcInfo.Text = "$env:COMPUTERNAME  -  $os"
+
+    # Updates the per-category counters, the category checkboxes and the footer total
+    $ui.Refresh = {
+        foreach ($card in $ui.Cards) {
+            $kids = @($card.Wrap.Children)
+            $on = @($kids | Where-Object { $_.IsChecked }).Count
+            $card.Count.Text = "$on/$($kids.Count)"
+            if ($on -eq $kids.Count) { $card.Header.IsChecked = $true }
+            elseif ($on -eq 0)      { $card.Header.IsChecked = $false }
+            else                    { $card.Header.IsChecked = $null }
+        }
+        $a = @($ui.AppBoxes   | Where-Object { $_.IsChecked }).Count
+        $t = @($ui.TweakBoxes | Where-Object { $_.IsChecked }).Count
+        $ui.Count.Text = "$a apps  /  $t settings"
+        $ui.BtnInstall.IsEnabled = ($a + $t) -gt 0
+    }.GetNewClosure()
+    $onChange = { & $ui.Refresh }.GetNewClosure()
+
+    # One card per category; the category checkbox checks/unchecks all of its apps
     foreach ($group in ($Apps | Group-Object { $_.Cat })) {
+        $card = New-Object System.Windows.Controls.Border
+        $card.Background      = '#1E1F26'
+        $card.CornerRadius    = '10'
+        $card.Padding         = '16,12,16,10'
+        $card.Margin          = '0,0,0,10'
+
+        $headRow = New-Object System.Windows.Controls.DockPanel
+        $count = New-Object System.Windows.Controls.TextBlock
+        $count.Foreground = '#8B8D98'
+        $count.VerticalAlignment = 'Center'
+        [System.Windows.Controls.DockPanel]::SetDock($count, 'Right')
+        $headRow.Children.Add($count) | Out-Null
+
         $header = New-Object System.Windows.Controls.CheckBox
         $header.Content    = $group.Name
-        $header.FontWeight = 'Bold'
+        $header.FontWeight = 'SemiBold'
         $header.FontSize   = 15
-        $header.Margin     = '0,12,0,4'
-        $header.IsChecked  = -not ($group.Group | Where-Object { -not $_.On })
+        $headRow.Children.Add($header) | Out-Null
 
         $wrap = New-Object System.Windows.Controls.WrapPanel
-        $wrap.Margin = '22,0,0,0'
+        $wrap.Margin = '28,6,0,0'
         foreach ($app in $group.Group) {
             $cb = New-Object System.Windows.Controls.CheckBox
             $cb.Content   = $app.Name
@@ -242,46 +533,99 @@ function Start-WinSetup {
             $cb.Width     = 210
             $cb.ToolTip   = $app.Id
             $cb.Tag       = $app
+            $cb.Add_Checked($onChange)
+            $cb.Add_Unchecked($onChange)
             $wrap.Children.Add($cb) | Out-Null
-            $appBoxes += $cb
+            $ui.AppBoxes.Add($cb)
         }
         $header.Tag = $wrap
-        $header.Add_Click({ foreach ($c in $this.Tag.Children) { $c.IsChecked = $this.IsChecked } })
+        $header.Add_Click({
+            $value = [bool]$this.IsChecked
+            foreach ($c in $this.Tag.Children) { if ($c.Visibility -eq 'Visible') { $c.IsChecked = $value } }
+        })
 
-        $appsPanel.Children.Add($header) | Out-Null
-        $appsPanel.Children.Add($wrap)   | Out-Null
+        $stack = New-Object System.Windows.Controls.StackPanel
+        $stack.Children.Add($headRow) | Out-Null
+        $stack.Children.Add($wrap)    | Out-Null
+        $card.Child = $stack
+        $ui.AppsPanel.Children.Add($card) | Out-Null
+        $ui.Cards.Add(@{ Border = $card; Header = $header; Wrap = $wrap; Count = $count })
     }
 
-    $tweakBoxes = @()
+    # One small card per setting, in two columns
     foreach ($t in $Tweaks) {
         $cb = New-Object System.Windows.Controls.CheckBox
         $cb.IsChecked = $t.On
         $cb.Tag       = $t
+        $cb.Margin    = '0'
         $text = New-Object System.Windows.Controls.TextBlock
         $text.TextWrapping = 'Wrap'
-        $text.Inlines.Add((New-Object System.Windows.Documents.Bold (New-Object System.Windows.Documents.Run $t.Name)))
+        $title = New-Object System.Windows.Documents.Run $t.Name
+        $title.FontWeight = 'SemiBold'
+        $text.Inlines.Add($title)
         $desc = New-Object System.Windows.Documents.Run ("`n" + $t.Desc)
-        $desc.Foreground = '#9E9E9E'
+        $desc.Foreground = '#8B8D98'
+        $desc.FontSize   = 12
         $text.Inlines.Add($desc)
         $cb.Content = $text
-        $cb.Margin  = '0,6,0,6'
-        $tweaksPanel.Children.Add($cb) | Out-Null
-        $tweakBoxes += $cb
+        $cb.Add_Checked($onChange)
+        $cb.Add_Unchecked($onChange)
+
+        $card = New-Object System.Windows.Controls.Border
+        $card.Background   = '#1E1F26'
+        $card.CornerRadius = '10'
+        $card.Padding      = '14,12'
+        $card.Margin       = '0,0,10,10'
+        $card.Child = $cb
+        $ui.TweaksPanel.Children.Add($card) | Out-Null
+        $ui.TweakBoxes.Add($cb)
     }
 
-    $win.FindName('Credit').Add_MouseLeftButtonUp({ Start-Process 'https://github.com/dani3lsamir' })
-    $win.FindName('BtnInstall').Add_Click({
+    # Search filters the app list by name or winget id
+    $ui.Search.Add_TextChanged({
+        $q = $ui.Search.Text.Trim()
+        $ui.SearchHint.Visibility = if ($q) { 'Collapsed' } else { 'Visible' }
+        foreach ($card in $ui.Cards) {
+            $any = $false
+            foreach ($c in $card.Wrap.Children) {
+                $show = (-not $q) -or
+                        $c.Tag.Name.IndexOf($q, [StringComparison]::OrdinalIgnoreCase) -ge 0 -or
+                        $c.Tag.Id.IndexOf($q, [StringComparison]::OrdinalIgnoreCase) -ge 0
+                $c.Visibility = if ($show) { 'Visible' } else { 'Collapsed' }
+                if ($show) { $any = $true }
+            }
+            $card.Border.Visibility = if ($any) { 'Visible' } else { 'Collapsed' }
+        }
+    }.GetNewClosure())
+
+    $ui.AppsAll.Add_Click({ foreach ($c in $ui.AppBoxes) { if ($c.Visibility -eq 'Visible') { $c.IsChecked = $true } } }.GetNewClosure())
+    $ui.AppsNone.Add_Click({ foreach ($c in $ui.AppBoxes) { if ($c.Visibility -eq 'Visible') { $c.IsChecked = $false } } }.GetNewClosure())
+    $ui.TweaksAll.Add_Click({ foreach ($c in $ui.TweakBoxes) { $c.IsChecked = $true } }.GetNewClosure())
+    $ui.TweaksNone.Add_Click({ foreach ($c in $ui.TweakBoxes) { $c.IsChecked = $false } }.GetNewClosure())
+
+    $ui.Credit.Add_MouseLeftButtonUp({ Start-Process 'https://github.com/dani3lsamir' })
+    $ui.BtnMin.Add_Click({
+        $w = [System.Windows.Window]::GetWindow($this)
+        $w.WindowState = 'Minimized'
+    })
+    $ui.BtnClose.Add_Click({
+        $w = [System.Windows.Window]::GetWindow($this)
+        $w.Close()
+    })
+    $ui.BtnInstall.Add_Click({
         $w = [System.Windows.Window]::GetWindow($this)
         $w.DialogResult = $true
     })
+
+    & $ui.Refresh
 
     if (-not $win.ShowDialog()) {
         Write-Host 'Cancelled.' -ForegroundColor Yellow
         return
     }
 
-    $selApps   = @($appBoxes   | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag })
-    $selTweaks = @($tweakBoxes | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag })
+    $selApps   = @($ui.AppBoxes   | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag })
+    $selTweaks = @($ui.TweakBoxes | Where-Object { $_.IsChecked } | ForEach-Object { $_.Tag })
 
     # ======================================================================
     #  Install apps
