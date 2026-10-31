@@ -1,30 +1,34 @@
-# Mi Setup
+# Win Setup
 
-Instalador de mis apps y ajustes para Windows. Abre una ventana con casillas: marco lo que quiero y lo instala con winget, que siempre baja la última versión.
+My apps and settings installer for Windows. It opens a window with checkboxes: I pick what I want and it installs everything with winget, which always downloads the latest version.
 
-## Uso
+## Usage
 
-En un Windows nuevo, abre PowerShell y ejecuta:
+On a fresh Windows install, open PowerShell and run:
 
 ```powershell
 irm dani3lsamir.github.io/win | iex
 ```
 
-Si GitHub Pages no está activado, funciona igual con la dirección larga:
+If GitHub Pages is not available, the long URL works too:
 
 ```powershell
 irm https://raw.githubusercontent.com/dani3lsamir/win/main/install.ps1 | iex
 ```
 
-## Agregar o quitar una app
+## Adding or removing an app
 
-1. Busca su ID: `winget search nombre-de-la-app`
-2. Agrega una línea en la lista `$Apps` de `install.ps1`:
+1. Find its ID: `winget search app-name`
+2. Add a line to the `$Apps` list in `install.ps1`:
    ```powershell
-   @{ Cat = 'Utilidades'; Id = 'Id.DeWinget'; Name = 'Nombre'; On = $true }
+   @{ Cat = 'Utilities'; Id = 'Winget.Id'; Name = 'Name'; On = $true }
    ```
-   `On = $true` hace que aparezca marcada por defecto.
+   `On = $true` makes it checked by default.
 
-## Comando corto
+## Short command
 
-El comando corto se publica con GitHub Pages (activado en **Settings → Pages → Source: GitHub Actions**). Cada vez que edites `install.ps1` y hagas push, se actualiza solo.
+The short command is published with GitHub Pages (**Settings → Pages → Source: GitHub Actions**). Every time `install.ps1` is pushed, it updates automatically.
+
+---
+
+by: [dani3lsamir](https://github.com/dani3lsamir)

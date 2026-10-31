@@ -1,6 +1,6 @@
-# Publica install.ps1 en https://dani3lsamir.github.io/win para poder usar:
+# Publishes install.ps1 at https://dani3lsamir.github.io/win so you can run:
 #   irm dani3lsamir.github.io/win | iex
-name: Publicar comando corto
+name: Publish short command
 
 on:
   push:
